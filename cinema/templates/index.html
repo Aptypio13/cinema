@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Favorite Films</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f3f4f6;
+            color: #333;
+        }
+
+        header {
+            background-color: #4caf50;
+            width: 100%;
+            padding: 1rem 0;
+            text-align: center;
+            color: white;
+        }
+
+        h1 {
+            margin: 0;
+        }
+
+        main {
+            max-width: 800px;
+            width: 100%;
+            padding: 1rem;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            background: white;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #createFilmModal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 2rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        #createFilmModal form div {
+            margin-bottom: 1rem;
+        }
+
+        #createFilmModal form label {
+            display: block;
+            font-weight: bold;
+        }
+
+        #createFilmModal form input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        #createFilmModal form button {
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Welcome to My Favorite Films</h1>
+    </header>
+    <main>
+        <h2>Favorite Films</h2>
+        <ul id="filmList">
+        </ul>
+        <button id="createFilmButton">Create New Film</button>
+    </main>
+
+    <div id="createFilmModal">
+        <h2>Create a New Film</h2>
+        <form id="createFilmForm">
+            <div>
+                <label for="filmTitle">Title</label>
+                <input type="text" id="filmTitle" required>
+            </div>
+            <div>
+                <label for="filmRating">Rating</label>
+                <input type="number" id="filmRating" min="0" max="10" step="0.1" required>
+            </div>
+            <div>
+                <label for="filmDescription">Description</label>
+                <input type="text" id="filmDescription" required>
+            </div>
+            <div>
+                <label for="filmDate">Date</label>
+                <input type="date" id="filmDate" required>
+            </div>
+            <button type="submit">Create</button>
+            <button type="button" id="closeModalButton">Cancel</button>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const filmList = document.getElementById('filmList');
+            const createFilmButton = document.getElementById('createFilmButton');
+            const createFilmModal = document.getElementById('createFilmModal');
+            const createFilmForm = document.getElementById('createFilmForm');
+            const closeModalButton = document.getElementById('closeModalButton');
+
+            // Fetch the list of films from the backend
+            async function fetchFilms() {
+                console.log('Fetching films')
+                const response = await fetch('/cinema/all'); // Assumes backend route exists
+                const films = await response.json();
+                filmList.innerHTML = '';
+                films.forEach(film => {
+                    console.log('film:', film)
+                    const li = document.createElement('li');
+                    li.textContent = `${film.title} (Rating: ${film.rating}) - ${film.description}`;
+                    filmList.appendChild(li);
+                });
+            }
+
+            // Show modal to create a new film
+            createFilmButton.addEventListener('click', () => {
+                createFilmModal.style.display = 'block';
+            });
+
+            // Close modal
+            closeModalButton.addEventListener('click', () => {
+                createFilmModal.style.display = 'none';
+            });
+
+            // Handle film creation
+            createFilmForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const newFilm = {
+                    title: document.getElementById('filmTitle').value,
+                    rating: parseFloat(document.getElementById('filmRating').value),
+                    description: document.getElementById('filmDescription').value,
+                   };
+                await fetch('create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newFilm)
+                });
+                createFilmModal.style.display = 'none';
+                fetchFilms();
+            });
+
+            // Initial fetch
+            fetchFilms();
+        });
+    </script>
+</body>
+</html>
